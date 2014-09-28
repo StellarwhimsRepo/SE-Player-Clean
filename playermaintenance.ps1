@@ -11,12 +11,12 @@
     #$filePath = 'yourtestsavepath\SANDBOX_0_0_0_.sbs'
     $filePath2 = 'yoursavepath\SANDBOX.sbc'
     #$filePath2 = 'yourtestsavepath\SANDBOX.sbc'
+    $playerslog = "you logpath\Admin Logs\Audits\Active Players\"
 
    #=======MAKE NO CHANGES BELOW THIS POINT UNLESS YOU KNOW WHAT YOU ARE DOING ==========
 
 
     $CurrentDateTime = Get-Date -Format "MM-dd-yyyy_HH-mm"
-    $playerslog = "yourlogpath\Admin Logs\Audits\Active Players\"
     $playerfilename = "Players_log_" +$CurrentDateTime+ ".log"
     $playerspath = $playerslog + $playerfilename
 
