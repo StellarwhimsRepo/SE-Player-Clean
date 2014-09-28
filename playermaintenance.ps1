@@ -49,14 +49,14 @@
         ForEach($node2 in $nodeOwns){
             if ($node.PlayerId -eq $node2.Owner){
               #Add-Content -Path $playerspath -Value "$($node2.ParentNode.ParentNode.DisplayName) Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)"
-                if($findlogin[-1] -eq $null){
+                #if($findlogin[-1] -eq $null){
 
-                    Add-Content -Path $playerspath -Value "$($node2.SubtypeName) Grid Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)"
-                    Add-Content -Path $playerspath -Value "owner not active this block has been deleted"
-                    $node2.ParentNode.RemoveChild($node2)
-                    $counter = $counter + 1
+                 #   Add-Content -Path $playerspath -Value "$($node2.SubtypeName) Grid Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)"
+                 #   Add-Content -Path $playerspath -Value "owner not active this block has been deleted"
+                 #   $node2.ParentNode.RemoveChild($node2)
+                 #   $counter = $counter + 1
 
-                }
+                #}
                 
                 $matchInfos = @(Select-String -Pattern $regex -AllMatches -InputObject [$($findlogin[-1])])
                 foreach ($minfo in $matchInfos){
