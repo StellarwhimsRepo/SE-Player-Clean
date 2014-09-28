@@ -6,7 +6,7 @@ The author of this script is not responsible for any damage to the game save or 
 
 AFK Player and owned blocks removal.
 
-This powershell script is used by changing the variables at the top of the 'ps1' file to mactch your server settings.
+This powershell script is used by changing the variables at the top of the 'ps1' file to match your server settings.
 
 The default settings will delete player owned blocks for player that have not logged in for over 14 days.
 
