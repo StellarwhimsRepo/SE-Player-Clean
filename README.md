@@ -8,3 +8,5 @@ AFK Player and owned blocks removal.
 This powershell script is used by changing the variables at the top of the 'ps1' file to mactch your server settings
 
 Be sure to shut your space engineers server down before running this script!!!
+
+Use the windows shortcut provided to run. Be sure the shortcut and the script file are in the same folder.
