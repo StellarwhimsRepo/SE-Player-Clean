@@ -1,6 +1,7 @@
 SE-Player-Clean
 ===============
 **INTENDED FOR DEDICATED SERVERS
+
 The author of this script is not responsible for any damage to the game save or the machine it is run on.
 
 AFK Player and owned blocks removal.
