@@ -5,16 +5,20 @@
     [int]$counter = 0
     [int]$deletedplayer = 0
 
-    $filePath = 'yoursavepath\SANDBOX_0_0_0_.sbs'
+    #save paths
+
+    $filePath = 'yoursavepath\SANDBOX_0_0_0_.sbs'         
     #$filePath = 'yourtestsavepath\SANDBOX_0_0_0_.sbs'
     $filePath2 = 'yoursavepath\SANDBOX.sbc'
     #$filePath2 = 'yourtestsavepath\SANDBOX.sbc'
+
+   #=======MAKE NO CHANGES BELOW THIS POINT UNLESS YOU KNOW WHAT YOU ARE DOING ==========
+
+
     $CurrentDateTime = Get-Date -Format "MM-dd-yyyy_HH-mm"
     $playerslog = "yourlogpath\Admin Logs\Audits\Active Players\"
     $playerfilename = "Players_log_" +$CurrentDateTime+ ".log"
     $playerspath = $playerslog + $playerfilename
-
-    #=======MAKE NO CHANGES BELOW THIS POINT UNLESS YOU KNOW WHAT YOU ARE DOING ==========
 
     [xml]$myXML = Get-Content $filePath
     $ns = New-Object System.Xml.XmlNamespaceManager($myXML.NameTable)
