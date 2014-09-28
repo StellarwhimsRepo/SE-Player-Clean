@@ -1,18 +1,20 @@
 ﻿    $regex = "\d{4}-\d{2}-\d{2}"
     $dte = Get-Date
-    $dte = $dte.AddDays(-14)
+    $dte = $dte.AddDays(-14)  #this is the number of days a player would have to be afk for this script to delete things.
     $dte = $dte.DayofYear
     [int]$counter = 0
     [int]$deletedplayer = 0
 
-    $filePath = 'F:\DedicatedServer\DataDir\VPS Dedicated 1\Saves\VPS RC 1\SANDBOX_0_0_0_.sbs'
-    #$filePath = 'F:\DedicatedServer\DataDir\SE Survival 2\Saves\VPS RC 1\SANDBOX_0_0_0_.sbs'
-    $filePath2 = 'F:\DedicatedServer\DataDir\VPS Dedicated 1\Saves\VPS RC 1\SANDBOX.sbc'
-    #$filePath2 = 'F:\DedicatedServer\DataDir\SE Survival 2\Saves\VPS RC 1\SANDBOX.sbc'
+    $filePath = 'yoursavepath\SANDBOX_0_0_0_.sbs'
+    #$filePath = 'yourtestsavepath\SANDBOX_0_0_0_.sbs'
+    $filePath2 = 'yoursavepath\SANDBOX.sbc'
+    #$filePath2 = 'yourtestsavepath\SANDBOX.sbc'
     $CurrentDateTime = Get-Date -Format "MM-dd-yyyy_HH-mm"
-    $playerslog = "W:\Google Drive\Admin Logs\Audits\Active Players\"
+    $playerslog = "yourlogpath\Admin Logs\Audits\Active Players\"
     $playerfilename = "Players_log_" +$CurrentDateTime+ ".log"
     $playerspath = $playerslog + $playerfilename
+
+    #=======MAKE NO CHANGES BELOW THIS POINT UNLESS YOU KNOW WHAT YOU ARE DOING ==========
 
     [xml]$myXML = Get-Content $filePath
     $ns = New-Object System.Xml.XmlNamespaceManager($myXML.NameTable)
