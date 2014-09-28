@@ -11,7 +11,8 @@
     #$filePath = 'yourtestsavepath\SANDBOX_0_0_0_.sbs'
     $filePath2 = 'yoursavepath\SANDBOX.sbc'
     #$filePath2 = 'yourtestsavepath\SANDBOX.sbc'
-    $playerslog = "you logpath\Admin Logs\Audits\Active Players\"
+    $playerslog = "youradminlogpath\Admin Logs\Audits\Active Players\"
+    $serverlogs = 'yourserverlogspath'
 
    #=======MAKE NO CHANGES BELOW THIS POINT UNLESS YOU KNOW WHAT YOU ARE DOING ==========
 
@@ -40,7 +41,7 @@
     ForEach($node in $nodePIDs){
         $nodename = $node.SteamId
         $findlogin = $null
-        $findlogin = dir 'F:\DedicatedServer\DataDir\VPS Dedicated 1' -Include *.log -Recurse | Select-String -Pattern "Peer2Peer_SessionRequest $nodename" 
+        $findlogin = dir $serverlogs -Include *.log -Recurse | Select-String -Pattern "Peer2Peer_SessionRequest $nodename" 
         Add-Content -Path $playerspath -Value "="
         Add-Content -Path $playerspath -Value "[$($node.PlayerId)] [$($node.Name)] is Dead? : [$($node.IsDead)] !"
         Add-Content -Path $playerspath -Value "Last login: [$($findlogin[-1])]" -EA SilentlyContinue
