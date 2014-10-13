@@ -2,6 +2,7 @@
     $dte = Get-Date
     $dte = $dte.AddDays(-14)  #this is the number of days a player would have to be afk for this script to delete things.
     $dte = $dte.DayofYear
+    [int]$deletefactions = 0
     [int]$counter = 0
     [int]$deletedplayer = 0
 
@@ -89,22 +90,39 @@
         $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
         Add-Content -Path $playerspath -Value "$nodeOwns blocks owned"
             If($nodeOwns -eq 0){
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerID='$nodeid']" , $ns2)
+              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
               $selectdelete.ParentNode.RemoveChild($selectdelete)
               $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$nodeid']", $ns2)
               $selectdelete.ParentNode.RemoveChild($selectdelete)
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerID='$nodeid']" , $ns2)
+              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
               $selectdelete.ParentNode.RemoveChild($selectdelete)
               Add-Content -Path $playerspath -Value "Deleting $nodename $nodeid"
               $node.ParentNode.RemoveChild($node)
-              $deletedplayer = $deletedplayer +1
+              $deletedplayer = $deletedplayer + 1
             }
-        
-           
-
     }
-    
-    
+
+    #factioncleaning
+    Add-Content -Path $playerspath -Value "="
+    Add-Content -Path $playerspath -Value "Empty Faction Cleanup ========="
+    $nodeFactions = $myXML2.SelectNodes("//Factions/Factions/MyObjectBuilder_Faction" , $ns2)
+    ForEach($faction in $nodeFactions){
+        $membercount = $faction.Members.MybObjectBuilder_FactionMember.count
+        $factionid = $faction.FactionId
+        If($membercount -eq 0){
+            $selectdelete = $myXML2.SelectNodes("//Factions/Requests/MyObjectBuilder_FactionRequests[FactionId='$factionid']" , $ns2)
+            ForEach($selected in $selectdelete){
+                $selected.ParentNode.RemoveChild($selected)
+            }
+            $selectdelete = $myXML2.SelectNodes("//Factions/Relations/MyObjectBuilder_FactionRelation[FactionId1='$factionid' or FactionId2='$factionid']" , $ns2)
+            ForEach($selected in $selectdelete){
+                $selected.ParentNode.RemoveChild($selected)
+            }
+            Add-Content -Path $playerspath -Value "Deleted faction $($faction.Name) ..."
+            $faction.ParentNode.RemoveChild($faction)
+            $deletefactions = $deletefactions + 1
+        }
+    }
 
 
 
@@ -113,6 +131,12 @@
         
         Add-Content -Path $playerspath -Value "="
         Add-Content -Path $playerspath -Value "$deletedplayer players removed for not owning anything."
+
+        Add-Content -Path $playerspath -Value "="
+        Add-Content -Path $playerspath -Value "$deletefactions empty factions removed."
+
+
+
 
         $myXML.Save($filePath)
         $myXML2.Save($filePath2)
