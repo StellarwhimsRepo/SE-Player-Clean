@@ -107,9 +107,9 @@
     Add-Content -Path $playerspath -Value "Empty Faction Cleanup ========="
     $nodeFactions = $myXML2.SelectNodes("//Factions/Factions/MyObjectBuilder_Faction" , $ns2)
     ForEach($faction in $nodeFactions){
-        $membercount = $faction.Members.MybObjectBuilder_FactionMember.count
+        $membercount = $faction.Members.MyObjectBuilder_FactionMember.count
         $factionid = $faction.FactionId
-        If($membercount -eq 0){
+        If($membercount -eq 0 -or $membercount -eq $null){
             $selectdelete = $myXML2.SelectNodes("//Factions/Requests/MyObjectBuilder_FactionRequests[FactionId='$factionid']" , $ns2)
             ForEach($selected in $selectdelete){
                 $selected.ParentNode.RemoveChild($selected)
@@ -119,9 +119,11 @@
                 $selected.ParentNode.RemoveChild($selected)
             }
             Add-Content -Path $playerspath -Value "Deleted faction $($faction.Name) ..."
+            #Write-Host -ForegroundColor Green "actioned! $membercount"
             $faction.ParentNode.RemoveChild($faction)
             $deletefactions = $deletefactions + 1
         }
+        #IF($membercount -ne 0 -or $membercount-ne $null){Write-Host -ForegroundColor Green "no action $membercount"}
     }
 
 
