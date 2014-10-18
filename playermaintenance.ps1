@@ -14,6 +14,7 @@
     #$filePath2 = 'yourtestsavepath\SANDBOX.sbc'
     $playerslog = "youradminlogpath\Admin Logs\Audits\Active Players\"
     $serverlogs = 'yourserverlogspath'
+    #$serverlogs = 'yourtestlogspath'
 
    #=======MAKE NO CHANGES BELOW THIS POINT UNLESS YOU KNOW WHAT YOU ARE DOING ==========
 
@@ -34,72 +35,92 @@
 
     Add-Content -path $playerspath -Value "[$([DateTime]::Now)] FoH Space Engineers Dedicated Players Audit Log  ==================="
 
+    #wipe orphaned id's (permanent death issue) if dead player owns nothing.
+
+    $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
+    $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns)
+    ForEach($node in $nodePIDs){
+        $playerid = $node.PlayerId
+        $clientcount=$myXML2.SelectNodes("//ConnectedPlayers/dictionary/item[Value='$playerid'] | //DisconnectedPlayers/dictionary/item[Value='$playerid']" , $ns2).count
+        $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns).count
+        IF($clientcount -eq 0 -and $nodeOwns -eq 0){
+            $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
+            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$playerid']", $ns2)
+            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
+            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            $node.ParentNode.RemoveChild($node)
+            Write-Host -ForegroundColor Green " abandoned ID deleted "
+        }
+    }
+
     #find block owners and delete blocks based on last log in
     Add-Content -Path $playerspath -Value "="
     Add-Content -Path $playerspath -Value "Ships ========="
-    $nodePIDs = $myXML2.SelectNodes("//AllPlayers/PlayerItem"  , $ns2) 
+    $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
+    $nodeClientID=$myXML2.SelectNodes("//ConnectedPlayers/dictionary/item | //DisconnectedPlayers/dictionary/item" , $ns2) 
     $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock"  , $ns)
     ForEach($node in $nodePIDs){
-        $nodename = $node.SteamId
-        $findlogin = $null
-        $findlogin = dir $serverlogs -Include *.log -Recurse | Select-String -Pattern "Peer2Peer_SessionRequest $nodename" 
-        Add-Content -Path $playerspath -Value "="
-        Add-Content -Path $playerspath -Value "[$($node.PlayerId)] [$($node.Name)] is Dead? : [$($node.IsDead)] !"
-        Add-Content -Path $playerspath -Value "Last login: [$($findlogin[-1])]" -EA SilentlyContinue
-        Add-Content -Path $playerspath -Value "****blocks owned/deleted****"
-        ForEach($node2 in $nodeOwns){
-            if ($node.PlayerId -eq $node2.Owner){
-              #Add-Content -Path $playerspath -Value "$($node2.ParentNode.ParentNode.DisplayName) Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)"
-                #if($findlogin[-1] -eq $null){
-
-                 #   Add-Content -Path $playerspath -Value "$($node2.SubtypeName) Grid Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)"
-                 #   Add-Content -Path $playerspath -Value "owner not active this block has been deleted"
-                 #   $node2.ParentNode.RemoveChild($node2)
-                 #   $counter = $counter + 1
-
-                #}
-                
-                $matchInfos = @(Select-String -Pattern $regex -AllMatches -InputObject [$($findlogin[-1])])
-                foreach ($minfo in $matchInfos){
-                    foreach ($match in @($minfo.Matches | Foreach {$_.Groups[0].value})){
-                        if ([datetime]::parseexact($match, "yyyy-MM-dd", $null).DayOfYear -lt $dte){
-                           Add-Content -Path $playerspath -Value "$($node2.SubtypeName) Grid Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)" 
-                           Add-Content -Path $playerspath -Value "owner not active this block has been deleted"
-                           $node2.ParentNode.RemoveChild($node2)
-                           $counter = $counter + 1
-                        }
+        ForEach($node3 in $nodeClientID){
+            IF($node3.Value.InnerText -eq $node.PlayerId){
+                $nodename = $node3.Key.ClientId
+                $findlogin = $null
+                $findlogin = dir $serverlogs -Include *.log -Recurse | Select-String -Pattern "Peer2Peer_SessionRequest $nodename" 
+                Add-Content -Path $playerspath -Value "="
+                Add-Content -Path $playerspath -Value "Checking Player [$($node.PlayerId)] [$($node.DisplayName)]!"
+                Add-Content -Path $playerspath -Value "Last login: [$($findlogin[-1])]" -EA SilentlyContinue
+                Add-Content -Path $playerspath -Value "****blocks owned/deleted****"
+                ForEach($node2 in $nodeOwns){
+                  if ($node.PlayerId -eq $node2.Owner){
+                    $matchInfos = @(Select-String -Pattern $regex -AllMatches -InputObject [$($findlogin[-1])])
+                    foreach ($minfo in $matchInfos){
+                        foreach ($match in @($minfo.Matches | Foreach {$_.Groups[0].value})){
+                            if ([datetime]::parseexact($match, "yyyy-MM-dd", $null).DayOfYear -lt $dte){
+                               Add-Content -Path $playerspath -Value "$($node2.SubtypeName) Grid Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)" 
+                               Add-Content -Path $playerspath -Value "owner not active this block has been deleted"
+                               $node2.ParentNode.RemoveChild($node2)
+                               $counter = $counter + 1
+                            }
                         
-                    }
-               }
+                        }
+                   }
+                 }
             }
-            
         }
-        }
+      }
+    }
 
 
     #player clean    
 
     Add-Content -Path $playerspath -Value "="
     Add-Content -Path $playerspath -Value "Player Cleanup ========="
-    $nodePIDs = $myXML2.SelectNodes("//AllPlayers/PlayerItem"  , $ns2) 
+    $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
+    $nodeClientID=$myXML2.SelectNodes("//ConnectedPlayers/dictionary/item | //DisconnectedPlayers/dictionary/item" , $ns2) 
     ForEach($node in $nodePIDs){
-        Add-Content -Path $playerspath -Value "="
-        Add-Content -Path $playerspath -Value "Checking $($node.Name) ..."
-        $nodename = $node.SteamId
-        $nodeid = $node.PlayerId
-        $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
-        Add-Content -Path $playerspath -Value "$nodeOwns blocks owned"
-            If($nodeOwns -eq 0){
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
-              $selectdelete.ParentNode.RemoveChild($selectdelete)
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$nodeid']", $ns2)
-              $selectdelete.ParentNode.RemoveChild($selectdelete)
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
-              $selectdelete.ParentNode.RemoveChild($selectdelete)
-              Add-Content -Path $playerspath -Value "Deleting $nodename $nodeid"
-              $node.ParentNode.RemoveChild($node)
-              $deletedplayer = $deletedplayer + 1
+        ForEach($node3 in $nodeClientID){
+            IF($node3.Value.InnerText -eq $node.PlayerId){
+                $nodename = $node3.Key.ClientId
+                $nodeid = $node.PlayerId
+                Add-Content -Path $playerspath -Value "="
+                Add-Content -Path $playerspath -Value "Checking [$($node.DisplayName)] ..."
+                $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
+                Add-Content -Path $playerspath -Value "$nodeOwns blocks owned"
+                If($nodeOwns -eq 0){
+                  $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
+                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$nodeid']", $ns2)
+                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
+                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  Add-Content -Path $playerspath -Value "Deleting [$nodename] [$nodeid] [$($node.DisplayName)]"
+                  $node3.ParentNode.RemoveChild($node3)
+                  $node.ParentNode.RemoveChild($node)
+                  $deletedplayer = $deletedplayer + 1
+                }
             }
+        }
     }
 
     #factioncleaning
