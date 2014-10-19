@@ -45,14 +45,17 @@
         $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns).count
         IF($clientcount -eq 0 -and $nodeOwns -eq 0){
             $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
-            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+            Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] is not a member of a faction, proceeding..."}
             $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$playerid']", $ns2)
-            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+            Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no faction dictionary data found, proceeding..."}
             $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
-            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+            Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no faction join requests, proceeding..."}
             $node.ParentNode.RemoveChild($node)
             Write-Host -ForegroundColor Green " abandoned ID deleted "
-        }
+        } 
     }
 
     #find block owners and delete blocks based on last log in
@@ -69,15 +72,22 @@
                 $findlogin = dir $serverlogs -Include *.log -Recurse | Select-String -Pattern "Peer2Peer_SessionRequest $nodename" 
                 Add-Content -Path $playerspath -Value "="
                 Add-Content -Path $playerspath -Value "Checking Player [$($node.PlayerId)] [$($node.DisplayName)]!"
-                Add-Content -Path $playerspath -Value "Last login: [$($findlogin[-1])]" -EA SilentlyContinue
+                Try{Add-Content -Path $playerspath -Value "Last login: [$($findlogin[-1])]"}
+                Catch{
+                    Write-Host -ForegroundColor Yellow "ERROR! Log Entry not found! Check your server logs path. This player may also not have any log entries if logging was not previously enabled.  Skipping ..."
+                    Write-Host -ForegroundColor Yellow "****You can use a 3rd Party tool such as SEToolBox to manually remove this player's assets.****"
+                    Add-Content -Path $playerspath -Value "****ERROR! Log Entry not found! Check your server logs path. This Player may also not have any log entries if logging was not previously enabled.****"
+                    Add-Content -Path $playerspath -Value "****You can use a 3rd Party tool such as SEToolBox to manually remove this player's assets.****"
+                    } 
                 Add-Content -Path $playerspath -Value "****blocks owned/deleted****"
                 ForEach($node2 in $nodeOwns){
                   if ($node.PlayerId -eq $node2.Owner){
-                    $matchInfos = @(Select-String -Pattern $regex -AllMatches -InputObject [$($findlogin[-1])])
+                    $matchInfos = $null
+                    Try{$matchInfos = @(Select-String -Pattern $regex -AllMatches -InputObject [$($findlogin[-1])])
                     foreach ($minfo in $matchInfos){
                         foreach ($match in @($minfo.Matches | Foreach {$_.Groups[0].value})){
                             if ([datetime]::parseexact($match, "yyyy-MM-dd", $null).DayOfYear -lt $dte){
-                               Add-Content -Path $playerspath -Value "$($node2.SubtypeName) Grid Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)" 
+                               Add-Content -Path $playerspath -Value "[$($node2.SubtypeName)] Grid Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)" 
                                Add-Content -Path $playerspath -Value "owner not active this block has been deleted"
                                $node2.ParentNode.RemoveChild($node2)
                                $counter = $counter + 1
@@ -85,9 +95,11 @@
                         
                         }
                    }
+                   }
+                   Catch{}
                  }
             }
-        }
+        } 
       }
     }
 
@@ -109,16 +121,19 @@
                 Add-Content -Path $playerspath -Value "$nodeOwns blocks owned"
                 If($nodeOwns -eq 0){
                   $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
-                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] is not a member of a faction, proceeding..."}
                   $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$nodeid']", $ns2)
-                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no faction dictionary data found, proceeding..."}
                   $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
-                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no faction join requests, proceeding..."}
                   Add-Content -Path $playerspath -Value "Deleting [$nodename] [$nodeid] [$($node.DisplayName)]"
                   $node3.ParentNode.RemoveChild($node3)
                   $node.ParentNode.RemoveChild($node)
                   $deletedplayer = $deletedplayer + 1
-                }
+                } 
             }
         }
     }
