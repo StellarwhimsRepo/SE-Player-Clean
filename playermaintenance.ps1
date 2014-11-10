@@ -13,7 +13,7 @@
     $filePath2 = 'yoursavepath\SANDBOX.sbc'
     #$filePath2 = 'yourtestsavepath\SANDBOX.sbc'
     $playerslog = "youradminlogpath\Admin Logs\Audits\Active Players\"
-    $serverlogs = 'yourserverlogspath'
+    $serverlogs = 'C:\ProgramData\SpaceEngineersDedicated\your server save logs&root path'   #<--- example only
     #$serverlogs = 'yourtestlogspath'
 
    #=======MAKE NO CHANGES BELOW THIS POINT UNLESS YOU KNOW WHAT YOU ARE DOING ==========
