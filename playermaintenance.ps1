@@ -43,7 +43,7 @@
     ForEach($node in $nodePIDs){
         $NPCID = [string]$node.PlayerId[0] + [string]$node.PlayerId[1] + [string]$node.PlayerId[2]
         $playerid = $node.PlayerId
-        $client = $myXML2.SelectSingleNode("//DisconnectedPlayers/dictionary/item[Value='$playerid']" , $ns2)
+        $client = $myXML2.SelectSingleNode("//AllPlayersData/dictionary/item/Value[IdentityId='$playerid']" , $ns2)
         $clientcount= $client.count
         $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns).count
         IF($clientcount -eq 0 -and $nodeOwns -eq 0 -and $NPCID -ne $compare){
@@ -65,11 +65,11 @@
     Add-Content -Path $playerspath -Value "="
     Add-Content -Path $playerspath -Value "Ships ========="
     $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
-    $nodeClientID=$myXML2.SelectNodes("//ConnectedPlayers/dictionary/item | //DisconnectedPlayers/dictionary/item" , $ns2) 
+    $nodeClientID=$myXML2.SelectNodes("//AllPlayersData/dictionary/item" , $ns2)
     $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock"  , $ns)
     ForEach($node in $nodePIDs){
         ForEach($node3 in $nodeClientID){
-            IF($node3.Value.InnerText -eq $node.PlayerId){
+            IF($node3.Value.IdentityId -eq $node.PlayerId){
                 $nodename = $node3.Key.ClientId
                 $findlogin = $null
                 $findlogin = dir $serverlogs -Include *.log -Recurse | Select-String -Pattern "Peer2Peer_SessionRequest $nodename" 
@@ -113,8 +113,8 @@
     Add-Content -Path $playerspath -Value "Player Cleanup ========="
     $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
     ForEach($node in $nodePIDs){
-                $nodeClientID=$myXML2.SelectSingleNode("//DisconnectedPlayers/dictionary/item[Value='$($node.PlayerId)']" , $ns2)
-                $nodename = $nodeClientID.ParentNode.Item.Key.ClientId
+                $nodeClientID=$myXML2.SelectSingleNode("//AllPlayersData/dictionary/item/Value[IdentityId='$($node.PlayerId)']" , $ns2)
+                $nodename = $nodeClientID.ParentNode.Key.ClientId
                 $nodeid = $node.PlayerId
                 Add-Content -Path $playerspath -Value "="
                 Add-Content -Path $playerspath -Value "Checking [$($node.DisplayName)] ..."
