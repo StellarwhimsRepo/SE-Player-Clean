@@ -131,7 +131,7 @@
                   Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
                   Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no faction join requests, proceeding..."}
                   Add-Content -Path $playerspath -Value "Deleting [$nodename] [$nodeid] [$($node.DisplayName)]"
-                  Try{$nodeClientID.ParentNode.RemoveChild($nodeClientID)}
+                  Try{$nodeClientID.ParentNode.ParentNode.RemoveChild($nodeClientID.ParentNode)}
                   Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no connection status, proceeding..."}
                   $node.ParentNode.RemoveChild($node)
                   $deletedplayer = $deletedplayer + 1
