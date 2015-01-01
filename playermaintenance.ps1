@@ -1,7 +1,10 @@
 ﻿    $regex = "\d{4}-\d{2}-\d{2}"
     $dte = Get-Date
-    $dte = $dte.AddDays(-14)  #this is the number of days a player would have to be afk for this script to delete things.
+    [int] $thresh = -14 #this is the number of days a player would have to be afk for this script to delete things.
+    $dte = $dte.AddDays($thresh)  
     $dte = $dte.DayofYear
+    $datecheck = Get-Date
+    $datecheck = $datecheck.DayOfYear
     [int]$deletefactions = 0
     [int]$counter = 0
     [int]$deletedplayer = 0
@@ -79,6 +82,7 @@
     $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
     $nodeClientID=$myXML2.SelectNodes("//AllPlayersData/dictionary/item" , $ns2)
     $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock"  , $ns)
+    If ($datecheck -gt ($thresh * -1)){
     ForEach($node in $nodePIDs){
         ForEach($node3 in $nodeClientID){
             IF($node3.Value.IdentityId -eq $node.PlayerId){
@@ -101,7 +105,7 @@
                     Try{$matchInfos = @(Select-String -Pattern $regex -AllMatches -InputObject [$($findlogin[-1])])
                     foreach ($minfo in $matchInfos){
                         foreach ($match in @($minfo.Matches | Foreach {$_.Groups[0].value})){
-                            if ([datetime]::parseexact($match, "yyyy-MM-dd", $null).DayOfYear -lt $dte){
+                            if ([datetime]::parseexact($match, "yyyy-MM-dd", $null).DayOfYear -lt $dte -or [datetime]::parseexact($match, "yyyy-MM-dd", $null).Year -lt $dte.Year){
                                Add-Content -Path $playerspath -Value "[$($node2.SubtypeName)] Grid Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)" 
                                Add-Content -Path $playerspath -Value "owner not active this block has been deleted"
                                $node2.ParentNode.RemoveChild($node2)
@@ -117,7 +121,7 @@
         } 
       }
     }
-
+    }
 
     #player clean    
 
