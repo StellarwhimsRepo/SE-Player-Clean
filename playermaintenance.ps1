@@ -105,7 +105,7 @@
                     Try{$matchInfos = @(Select-String -Pattern $regex -AllMatches -InputObject [$($findlogin[-1])])
                     foreach ($minfo in $matchInfos){
                         foreach ($match in @($minfo.Matches | Foreach {$_.Groups[0].value})){
-                            if ([datetime]::parseexact($match, "yyyy-MM-dd", $null).DayOfYear -lt $dte -or [datetime]::parseexact($match, "yyyy-MM-dd", $null).Year -lt $dte.Year){
+                            if ([datetime]::parseexact($match, "yyyy-MM-dd", $null).DayOfYear -lt $dte -or [datetime]::parseexact($match, "yyyy-MM-dd", $null).Year -lt (Get-Date -UFormat %Y)){
                                Add-Content -Path $playerspath -Value "[$($node2.SubtypeName)] Grid Coordinates: $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select X) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Y) , $($node2.ParentNode.ParentNode.PositionAndOrientation.position | Select Z)" 
                                Add-Content -Path $playerspath -Value "owner not active this block has been deleted"
                                $node2.ParentNode.RemoveChild($node2)
