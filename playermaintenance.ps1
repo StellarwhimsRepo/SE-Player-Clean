@@ -41,12 +41,12 @@
     Add-Content -path $playerspath -Value "[$([DateTime]::Now)] FoH Space Engineers Dedicated Players Audit Log  ==================="
 
     #wipe orphaned id's (permanent death issue) if dead player owns nothing.
-    [string]$compare = "360"
+    [string]$compare = "Neutral NPC"
     $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
     Write-Host -ForegroundColor Green " checking for abandoned ID's ... "
     ForEach($node in $nodePIDs){
-        $NPCID = [string]$node.PlayerId[0] + [string]$node.PlayerId[1] + [string]$node.PlayerId[2]
-        $playerid = $node.PlayerId
+        $NPCID = [string]$node.DisplayName
+        $playerid = $node.IdentityId
         $client = $myXML2.SelectSingleNode("//AllPlayersData/dictionary/item/Value[IdentityId='$playerid']" , $ns2)
         $clientcount= $client.count
         $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns).count
@@ -82,8 +82,8 @@
     Write-Host -ForegroundColor Green " scanning for orphaned blocks ..."
     $orphOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock/Owner"  , $ns)
     ForEach($node in $orphOwns){
-    $clients = $myXML2.SelectSingleNode("//Identities/MyObjectBuilder_Identity[PlayerId='$($node.InnerText)']" , $ns2)
-    If($clients.PlayerId.count -eq 0){
+    $clients = $myXML2.SelectSingleNode("//Identities/MyObjectBuilder_Identity[IdentityId='$($node.InnerText)']" , $ns2)
+    If($clients.IdentityId.count -eq 0){
     $node.ParentNode.RemoveChild($node)
     }
     }
@@ -97,12 +97,12 @@
     If ($datecheck -gt ($thresh * -1)){
     ForEach($node in $nodePIDs){
         ForEach($node3 in $nodeClientID){
-            IF($node3.Value.IdentityId -eq $node.PlayerId){
+            IF($node3.Value.IdentityId -eq $node.IdentityId){
                 $nodename = $node3.Key.ClientId
                 $findlogin = $null
                 $findlogin = dir $serverlogs -Include *.log -Recurse | Select-String -Pattern "Peer2Peer_SessionRequest $nodename" 
                 Add-Content -Path $playerspath -Value "="
-                Add-Content -Path $playerspath -Value "Checking Player [$($node.PlayerId)] [$($node.DisplayName)]!"
+                Add-Content -Path $playerspath -Value "Checking Player [$($node.IdentityId)] [$($node.DisplayName)]!"
                 Try{Add-Content -Path $playerspath -Value "Last login: [$($findlogin[-1])]"}
                 Catch{
                     Write-Host -ForegroundColor Yellow "ERROR! Log Entry not found! Check your server logs path. This player may also not have any log entries if logging was not previously enabled.  Skipping ..."
@@ -112,7 +112,7 @@
                     } 
                 Add-Content -Path $playerspath -Value "****blocks owned/deleted****"
                 ForEach($node2 in $nodeOwns){
-                  if ($node.PlayerId -eq $node2.Owner){
+                  if ($node.IdentityId -eq $node2.Owner){
                     $matchInfos = $null
                     Try{$matchInfos = @(Select-String -Pattern $regex -AllMatches -InputObject [$($findlogin[-1])])
                     foreach ($minfo in $matchInfos){
@@ -141,9 +141,9 @@
     Add-Content -Path $playerspath -Value "Player Cleanup ========="
     $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
     ForEach($node in $nodePIDs){
-                $nodeClientID=$myXML2.SelectSingleNode("//AllPlayersData/dictionary/item/Value[IdentityId='$($node.PlayerId)']" , $ns2)
+                $nodeClientID=$myXML2.SelectSingleNode("//AllPlayersData/dictionary/item/Value[IdentityId='$($node.IdentityId)']" , $ns2)
                 $nodename = $nodeClientID.ParentNode.Key.ClientId
-                $nodeid = $node.PlayerId
+                $nodeid = $node.IdentityId
                 Add-Content -Path $playerspath -Value "="
                 Add-Content -Path $playerspath -Value "Checking [$($node.DisplayName)] ..."
                 $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
