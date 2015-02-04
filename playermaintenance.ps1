@@ -218,7 +218,16 @@
         Add-Content -Path $playerspath -Value "="
         Add-Content -Path $playerspath -Value "$deletefactions empty factions removed."
 
+        #purge chats
+        $factionchats = $myXML2.SelectNodes("//FactionChatHistory/MyObjectBuilder_FactionChatHistory" , $ns2)
+        ForEach($chat in $factionchats){
+        $chat.ParentNode.RemoveChild($chat)
+        }
 
+        $chathistory = $myXML2.SelectNodes("//ChatHistory/MyObjectBuilder_ChatHistory" , $ns2)
+        ForEach($chathist in $chathistory){
+        $chathist.ParentNode.RemoveChild($chathist)
+        }
 
 
         $myXML.Save($filePath)
